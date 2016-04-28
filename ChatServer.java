@@ -7,6 +7,7 @@ public class ChatServer {
 	protected int serverPort = 1234;
 	protected List<Socket> clients = new ArrayList<Socket>(); // list of clients
 	protected List<String> usernames = new ArrayList<String>();
+	protected TreeMap<String, Socket> users = new TreeMap<String, Socket>();
 
 	public static void main(String[] args) throws Exception {
 		new ChatServer();
@@ -140,13 +141,13 @@ class ChatServerConnector extends Thread {
 				case 0:
 					String msg = msg_received.substring(2);
 					System.out.println("[RKchat] [" + this.socket.getPort() + "] : " + msg); // print the incoming message in the console
-					msg_send = "someone said: " + msg.toUpperCase(); // TODO
+					msg_send = username + " said: " + msg.toUpperCase(); // TODO
 					break;
 
 				case 1:
-					String user = msg_received.substring(2);
-					this.server.addUsername(user);
-					System.out.println("User " + user + " added");
+					username = msg_received.substring(2);
+					this.server.addUsername(username);
+					System.out.println("User " + username + " added");
 					this.server.printUsers();
 					break;
 
