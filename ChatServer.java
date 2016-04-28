@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.regex.*;
 
 public class ChatServer {
 
@@ -136,19 +137,27 @@ class ChatServerConnector extends Thread {
 
 
 			String msg_send = "";
-			System.out.println(Character.getNumericValue(msg_received.charAt(0)));
 			switch (Character.getNumericValue(msg_received.charAt(0))) {
 				case 0:
 					String msg = msg_received.substring(2);
-					System.out.println("[RKchat] [" + this.socket.getPort() + "] : " + msg); // print the incoming message in the console
-					msg_send = username + " said: " + msg.toUpperCase(); // TODO
+					String pattern = "([^|]*)\\|([^|]*)\\|([^|]*)";
+					Pattern r = Pattern.compile(pattern);
+
+					Matcher m = r.matcher(msg);
+					m.find();
+					String user = m.group(1);
+					String time = m.group(2);
+					String message = m.group(3);
+
+					System.out.println("[RKchat] [" + this.socket.getPort() + "] : " + message); // print the incoming message in the console
+					msg_send = time + " " + user + " said: " + message.toUpperCase(); // TODO
 					break;
 
 				case 1:
 					username = msg_received.substring(2);
 					this.server.addUsername(username);
 					System.out.println("User " + username + " added");
-					this.server.printUsers();
+					// this.server.printUsers();
 					break;
 
 				default:

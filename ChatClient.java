@@ -1,5 +1,7 @@
 import java.io.*;
 import java.net.*;
+import java.util.*;
+import java.text.SimpleDateFormat;
 
 public class ChatClient extends Thread
 {
@@ -38,9 +40,15 @@ public class ChatClient extends Thread
 		username = std_in.readLine();
 		this.sendMessage("1|" + username, out);
 
+		// get timestamp
+		Date date = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+		String formatedTime = sdf.format(date);
+
+
 		String userInput;
 		while ((userInput = std_in.readLine()) != null) { // read a line from the console
-			this.sendMessage("0|" + userInput, out); // send the message to the chat server
+			this.sendMessage("0|" + username +"|"+ formatedTime +"|"+ userInput, out); // send the message to the chat server
 		}
 
 		// cleanup
