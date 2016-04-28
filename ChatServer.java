@@ -6,6 +6,7 @@ public class ChatServer {
 
 	protected int serverPort = 1234;
 	protected List<Socket> clients = new ArrayList<Socket>(); // list of clients
+	protected List<String> usernames = new ArrayList<String>();
 
 	public static void main(String[] args) throws Exception {
 		new ChatServer();
@@ -54,13 +55,35 @@ public class ChatServer {
 	public void sendToAllClients(String message) throws Exception {
 		Iterator<Socket> i = clients.iterator();
 		while (i.hasNext()) { // iterate through the client list
-			Socket socket = (Socket) i.next(); // get the socket for communicating with this client
+			Socket socket = i.next(); // get the socket for communicating with this client
 			try {
 				DataOutputStream out = new DataOutputStream(socket.getOutputStream()); // create output stream for sending messages to the client
 				out.writeUTF(message); // send message to the client
 			} catch (Exception e) {
 				System.err.println("[system] could not send message to a client");
 				e.printStackTrace(System.err);
+			}
+		}
+	}
+
+	public void addUsername(String username) {
+		synchronized(this) {
+			usernames.add(username);
+		}
+	}
+
+	public void removeUsername(String username) {
+		synchronized(this) {
+			usernames.remove(username);
+		}
+	}
+
+	public void printUsers() {
+		synchronized(this) {
+			Iterator<String> i = usernames.iterator();
+			System.out.print("Users["+ usernames.size() +"]: ");
+			while (i.hasNext()) {
+				System.out.print(i.next() + " ");
 			}
 		}
 	}
@@ -75,6 +98,7 @@ public class ChatServer {
 class ChatServerConnector extends Thread {
 	private ChatServer server;
 	private Socket socket;
+	private String username;
 
 	public ChatServerConnector(ChatServer server, Socket socket) {
 		this.server = server;
@@ -102,15 +126,34 @@ class ChatServerConnector extends Thread {
 				System.err.println("[system] there was a problem while reading message client on port " + this.socket.getPort());
 				e.printStackTrace(System.err);
 				this.server.removeClient(this.socket);
+				this.server.removeUsername(this.username);
 				return;
 			}
 
 			if (msg_received.length() == 0) // invalid message
 				continue;
 
-			System.out.println("[RKchat] [" + this.socket.getPort() + "] : " + msg_received); // print the incoming message in the console
 
-			String msg_send = "someone said: " + msg_received.toUpperCase(); // TODO
+			String msg_send = "";
+			System.out.println(Character.getNumericValue(msg_received.charAt(0)));
+			switch (Character.getNumericValue(msg_received.charAt(0))) {
+				case 0:
+					String msg = msg_received.substring(2);
+					System.out.println("[RKchat] [" + this.socket.getPort() + "] : " + msg); // print the incoming message in the console
+					msg_send = "someone said: " + msg.toUpperCase(); // TODO
+					break;
+
+				case 1:
+					String user = msg_received.substring(2);
+					this.server.addUsername(user);
+					System.out.println("User " + user + " added");
+					this.server.printUsers();
+					break;
+
+				default:
+					System.out.println("Error!");
+			}
+
 
 			try {
 				this.server.sendToAllClients(msg_send); // send message to all clients

@@ -4,6 +4,7 @@ import java.net.*;
 public class ChatClient extends Thread
 {
 	protected int serverPort = 1234;
+	protected String username;
 
 	public static void main(String[] args) throws Exception {
 		new ChatClient();
@@ -31,9 +32,15 @@ public class ChatClient extends Thread
 
 		// read from STDIN and send messages to the chat server
 		BufferedReader std_in = new BufferedReader(new InputStreamReader(System.in));
+
+		// add user
+		System.out.print("Username: ");
+		username = std_in.readLine();
+		this.sendMessage("1|" + username, out);
+
 		String userInput;
 		while ((userInput = std_in.readLine()) != null) { // read a line from the console
-			this.sendMessage(userInput, out); // send the message to the chat server
+			this.sendMessage("0|" + userInput, out); // send the message to the chat server
 		}
 
 		// cleanup
